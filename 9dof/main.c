@@ -35,11 +35,6 @@
 #define MPU6050_INT     PORTE,4
 #define QMC5883P_INT    PORTB,5
 
-//float mag_A[3][3] = {{1.02194020, 0.01561863, -0.00040929},
-//                     {0.01561863, 0.97946220, -0.01384287},
-//                     {-0.00040929, -0.01384287, 0.99948832}};
-//float mag_b[3] = {0.01092655, -0.00538835, -0.02026989};
-
 float mag_A[3][3] = {{0.00861610, 0.00195565, 0.00083649},
                     {0.00195565, 10.99483483, -0.22468925},
                     {0.00083649, -0.22468925, 10.5611354}};
@@ -77,12 +72,11 @@ Vec3f correct(Vec3f raws, float A[3][3], float b[3]);
 int main(void) {
     initHw();
     Vec3f g_ofs = gyroOffsets();
+
     for(;;) {
-
-//        filter_loop(g_ofs);
+        filter_loop(g_ofs);
 //        test_loop(g_ofs);
-        marg_loop(g_ofs);
-
+//        marg_loop(g_ofs);
 //        waitMicrosecond(40e3);
     }
 }
