@@ -35,10 +35,16 @@
 #define MPU6050_INT     PORTE,4
 #define QMC5883P_INT    PORTB,5
 
-float mag_A[3][3] = {{1.02194020, 0.01561863, -0.00040929},
-                     {0.01561863, 0.97946220, -0.01384287},
-                     {-0.00040929, -0.01384287, 0.99948832}};
-float mag_b[3] = {0.01092655, -0.00538835, -0.02026989};
+//float mag_A[3][3] = {{1.02194020, 0.01561863, -0.00040929},
+//                     {0.01561863, 0.97946220, -0.01384287},
+//                     {-0.00040929, -0.01384287, 0.99948832}};
+//float mag_b[3] = {0.01092655, -0.00538835, -0.02026989};
+
+float mag_A[3][3] = {{0.00861610, 0.00195565, 0.00083649},
+                    {0.00195565, 10.99483483, -0.22468925},
+                    {0.00083649, -0.22468925, 10.5611354}};
+
+float mag_b [3]= {178.46403898, -0.03880254, -0.03374748};
 
 float accel_A[3][3] = {{1.00550042, -0.00211106, -0.00102880},
                        {-0.00211106, 1.00552839, 0.00102497},
@@ -172,16 +178,15 @@ void test_loop(Vec3f g_ofs) {
     mag.y = -t;
 
     accel = correct(accel, accel_A, accel_b);
-    mag = correct(mag, mag_A, mag_b);
 
     accel = sliding_window(window_a, accel, WINDOW_SIZE, &idx_a);
     gyro = sliding_window(window_g, gyro, WINDOW_SIZE, &idx_g);
     mag = sliding_window(window_m, mag, WINDOW_SIZE, &idx_m);
 
-    putsUart0(SAVE_POS);
+//    putsUart0(SAVE_POS);
     usprintf(buffer, "%f,%f,%f\n", mag.x, mag.y, mag.z);
     putsUart0(buffer);
-    putsUart0(RETURN_2_POS);
+//    putsUart0(RETURN_2_POS);
 }
 
 void filter_loop(Vec3f g_ofs) {
