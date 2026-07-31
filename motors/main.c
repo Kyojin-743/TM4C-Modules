@@ -276,7 +276,6 @@ void mix(int16_t* raws, uint16_t *mixed){
     norms[YAW] -= 50;
 
 
-
     //mix
     mixed[0] = max(0, min(norms[THROTTLE] + norms[PITCH] + norms[ROLL] + norms[YAW], 100));
     mixed[1] = max(0, min(norms[THROTTLE] + norms[PITCH] - norms[ROLL] - norms[YAW], 100));
