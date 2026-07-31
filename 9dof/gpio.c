@@ -27,6 +27,7 @@
 #define OFS_DATA_TO_IBE    3*4*8
 #define OFS_DATA_TO_IEV    4*4*8
 #define OFS_DATA_TO_IM     5*4*8
+#define OFS_DATA_TO_MIS    7*4*8
 #define OFS_DATA_TO_IC     8*4*8
 #define OFS_DATA_TO_AFSEL  9*4*8
 #define OFS_DATA_TO_ODR   68*4*8
@@ -293,6 +294,13 @@ void disablePinInterrupt(PORT port, uint8_t pin)
     volatile uint32_t *p;
     p = (uint32_t *)port + pin + OFS_DATA_TO_IM;
     *p = 0;
+}
+
+bool isPinInterrupt(PORT port, uint8_t pin)
+{
+    volatile uint32_t *p;
+    p = (uint32_t *)port + pin + OFS_DATA_TO_MIS;
+    return *p;
 }
 
 void clearPinInterrupt(PORT port, uint8_t pin)

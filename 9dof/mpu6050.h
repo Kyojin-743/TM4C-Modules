@@ -101,6 +101,96 @@
 
 #define MPU6050_WHO_AM_I_R            0x75
 
+//Controls the Digital Low Pass Filter Cutoff frequency in Hz
+#define MPU6050_CONFIG_DLPF_A260_G256       0x00
+#define MPU6050_CONFIG_DLPF_A184_G188       0x01
+#define MPU6050_CONFIG_DLPF_A94_G98         0x02
+#define MPU6050_CONFIG_DLPF_A44_G42         0x03
+#define MPU6050_CONFIG_DLPF_A21_G20         0x04
+#define MPU6050_CONFIG_DLPF_A10_G10         0x05
+#define MPU6050_CONFIG_DLPF_A5_G5           0x06
+
+//Controls which external clock will drive sample rate
+//  (recommended to be used)
+#define MPU6050_CONFIG_FSYNC_DISABLE        0x00
+#define MPU6050_CONFIG_FSYNC_TEMP           0x08
+#define MPU6050_CONFIG_FSYNC_GYRO_X         0x10
+#define MPU6050_CONFIG_FSYNC_GYRO_Y         0x18
+#define MPU6050_CONFIG_FSYNC_GYRO_Z         0x20
+#define MPU6050_CONFIG_FSYNC_ACCEL_X        0x28
+#define MPU6050_CONFIG_FSYNC_ACCEL_Y        0x30
+#define MPU6050_CONFIG_FSYNC_ACCEL_Z        0x38
+
+//Setting this bit performs self test on cooresponding gyro axis
+#define MPU6050_GYRO_CONFIG_Z_ST            0x02
+#define MPU6050_GYRO_CONFIG_Y_ST            0x04
+#define MPU6050_GYRO_CONFIG_X_ST            0x08
+
+//Sets the Full scale Range in °/s
+#define MPU6050_GYRO_CONFIG_FSSEL_250       0x00
+#define MPU6050_GYRO_CONFIG_FSSEL_500       0x08
+#define MPU6050_GYRO_CONFIG_FSSEL_1000      0x10
+#define MPU6050_GYRO_CONFIG_FSSEL_2000      0x18
+
+//Setting this bit performs self test on cooresponding accelerometer axis
+#define MPU6050_ACCEL_CONFIG_Z_ST            0x02
+#define MPU6050_ACCEL_CONFIG_Y_ST            0x04
+#define MPU6050_ACCEL_CONFIG_X_ST            0x08
+
+//Sets the Full scale Range in g's (gravity)
+#define MPU6050_ACCEL_CONFIG_FSSEL_2        0x00
+#define MPU6050_ACCEL_CONFIG_FSSEL_4        0x08
+#define MPU6050_ACCEL_CONFIG_FSSEL_8        0x10
+#define MPU6050_ACCEL_CONFIG_FSSEL_16       0x18
+
+//Enables the FIFO for cooresponding value
+//(Accel xyz grouped)
+#define MPU6050_FIFO_EN_SLV0                0x01
+#define MPU6050_FIFO_EN_SLV1                0x02
+#define MPU6050_FIFO_EN_SLV2                0x04
+#define MPU6050_FIFO_EN_ACCEL               0x08
+#define MPU6050_FIFO_EN_GYRO_Z              0x10
+#define MPU6050_FIFO_EN_GYRO_Y              0x20
+#define MPU6050_FIFO_EN_GYRO_X              0x40
+#define MPU6050_FIFO_EN_TEMP                0x80
+
+//Configures the interrupt pin
+#define MPU6050_INT_PIN_CFG_BYPASS_EN       0x02    //0: disabled    | 1: enabled
+#define MPU6050_INT_PIN_CFG_FSYNC_EN        0x04    //0: disabled    | 1: enabled
+#define MPU6050_INT_PIN_CFG_FSYNC_LVL       0x08    //0: active high | 1: active low
+#define MPU6050_INT_PIN_CFG_RD_CLEAR        0x10    //0: clear by read of INT_STATUS
+                                                    //1: clear by read of any register
+#define MPU6050_INT_PIN_CFG_LATCH_EN        0x20    //0: Interrupt auto clears after 50us
+                                                    //1: Interrupt is latched until read
+#define MPU6050_INT_PIN_CFG_OD              0x40    //0: push/pull
+                                                    //1: open-drain
+#define MPU6050_INT_PIN_CFG_INT_LVL         0x80    //0: logic lvl HIGH
+                                                    //1: logic lvl LOW
+
+#define MPU6050_INT_ENABLE_DATA_READY       0x01
+#define MPU6050_INT_ENABLE_I2C_MST          0x08
+#define MPU6050_INT_ENABLE_OVRFLW           0x10
+#define MPU6050_INT_ENABLE_MOTION           0x40
+
+#define MPU6050_INT_STATUS_DATA_READY       0x01
+#define MPU6050_INT_STATUS_I2C_MST          0x08
+#define MPU6050_INT_STATUS_OVRFLW           0x10
+#define MPU6050_INT_STATUS_MOTION           0x40
+
+#define MPU6050_PWR_MGMT_1_CLKSEL_8M        0x0
+#define MPU6050_PWR_MGMT_1_CLKSEL_GYR_X     0x01
+#define MPU6050_PWR_MGMT_1_CLKSEL_GYR_Y     0x02
+#define MPU6050_PWR_MGMT_1_CLKSEL_GYR_Z     0x03
+#define MPU6050_PWR_MGMT_1_CLKSEL_32K_EXT   0x04
+#define MPU6050_PWR_MGMT_1_CLKSEL_19M_EXT   0x05
+#define MPU6050_PWR_MGMT_1_CLKSEL_STOP      0x07
+
+#define MPU6050_PWR_MGMT_1_TEMP_DISABLE     0x08
+
+#define MPU6050_PWR_MGMT_1_CYCLE            0x20
+#define MPU6050_PWR_MGMT_1_SLEEP            0x40
+#define MPU6050_PWR_MGMT_1_RESET            0x80
+
 /* Structs & Enums & Types*/
 
 typedef void (*func)(void);

@@ -46,6 +46,7 @@ float accel_A[3][3] = {{1.00550042, -0.00211106, -0.00102880},
                        {-0.00102880, 0.00102497, 0.98906820}};
 float accel_b[3] = {0.02526037, 0.00277766, 0.01647459};
 
+bool mpu_data_ready = false;
 
 /* SUB ROUTINE PROTOTYPES */
 
@@ -65,7 +66,7 @@ void test_loop(Vec3f g_ofs);
 void marg_loop(Vec3f g_ofs);
 Vec3f sliding_window(Vec3f window[], Vec3f new_data, uint8_t size, uint8_t *window_idx);
 Vec3f correct(Vec3f raws, float A[3][3], float b[3]);
-
+void gpioEIsr(void);
 #define WINDOW_SIZE 4
 
 /* MAIN ROUTINE */
@@ -74,15 +75,25 @@ int main(void) {
     Vec3f g_ofs = gyroOffsets();
 
     for(;;) {
-        filter_loop(g_ofs);
+//        filter_loop(g_ofs);
 //        test_loop(g_ofs);
-//        marg_loop(g_ofs);
+        marg_loop(g_ofs);
 //        waitMicrosecond(40e3);
     }
 }
 
 
 /* SUB ROUTINES */
+
+void gpioEIsr(void) {
+    if(isPinInterrupt(MPU6050_INT)) {
+        setPinValue(LED_G, 1);
+        mpu_data_ready = true;
+
+//        readI2c1Register(MPU6050_ADDR, MPU6050_INT_STATUS_R); // if not auto clearing
+        clearPinInterrupt(MPU6050_INT);
+    }
+}
 
 void initHw(void) {
     initSystemClockTo40Mhz();
@@ -92,9 +103,15 @@ void initHw(void) {
     enablePort(PORTF);
     enablePort(PORTE);
     enablePort(PORTB);
+
     selectPinPushPullOutput(LED_G);
     selectPinDigitalInput(QMC5883P_INT);
     selectPinDigitalInput(MPU6050_INT);
+
+    selectPinInterruptRisingEdge(MPU6050_INT);
+
+    enablePinInterrupt(MPU6050_INT);
+    enableNvicInterrupt(INT_GPIOE);
 
     //Shell
     initUart0();
@@ -249,7 +266,8 @@ void marg_loop(Vec3f g_ofs) {
     static Quaternion q_est = {1.0f, 0.0f, 0.0f, 0.0f};
 
     //Only update when mpu data is valid
-    if(!getPinValue(MPU6050_INT)) return;
+    if(!mpu_data_ready) return;
+    setPinValue(LED_G, 0);
     uint8_t data = readI2c1Register(QMC5883P_ADDR, QMC5883P_STAT_R);
 
     char buffer[100];
@@ -269,7 +287,7 @@ void marg_loop(Vec3f g_ofs) {
     float dt_s = deltaSeconds();
     dt_marg_s += dt_s;
 
-    accel = correct(accel, accel_A, accel_b);
+    accel   = correct(accel, accel_A, accel_b);
     accel   = sliding_window(window_a, accel, WINDOW_SIZE, &idx_a);
     gyro    = sliding_window(window_g, gyro, WINDOW_SIZE, &idx_g);
 

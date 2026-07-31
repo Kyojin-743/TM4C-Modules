@@ -32,51 +32,26 @@ uint8_t g_fsr = 0, a_fsr = 0;
 bool mpu_init(void) {
     bool ok = true;
 
-    //Sample Rate Register
-        //sample rate = gyro_outp_rate / (1 + SMPLRT_DIV)
-        //Accelerometer sample rate capped at 1 kHz -> No downsample while using DLPF
+//    ok &= mpu_writeReg(MPU6050_PWR_MGMT_1_R, MPU6050_PWR_MGMT_1_RESET);
+
+    //sample rate = gyro_outp_rate / (1 + SMPLRT_DIV)
     ok &= mpu_writeReg(MPU6050_SMPLRT_DIV_R, 0x00);
-    if(!ok) return false;
 
-    //Power Management Register
-        //Not Configuring for Cycling yet (sleep -> wake up to measure)
-        //Recommended to use Gyro as clock reference
-    ok &= mpu_writeReg(MPU6050_PWR_MGMT_1_R, 0x01);
-    if(!ok) return false;
+    ok &= mpu_writeReg(MPU6050_PWR_MGMT_1_R,
+                       MPU6050_PWR_MGMT_1_TEMP_DISABLE |
+                       MPU6050_PWR_MGMT_1_CLKSEL_GYR_X);
 
-    //Config Register
-        // Turn on the DLPF -> gyro_outp_rate = 1 kHz
-        //Accel: Bw = 184 Hz & Delay = 2.0 ms
-        //Gyro:  Bw = 188 Hz & Delay = 1.9 ms
-    ok &= mpu_writeReg(MPU6050_CONFIG_R, 0x01);
-    if(!ok) return false;
+    ok &= mpu_writeReg(MPU6050_CONFIG_R,
+                       MPU6050_CONFIG_DLPF_A184_G188 |
+                       MPU6050_CONFIG_FSYNC_DISABLE);
 
-    //Gyroscope Config Register
-        //Full Scale 2 -> FS range = +- 250 deg/s
-    ok &= mpu_writeReg(MPU6050_GYRO_CONFIG_R, 0x00);
-    if(!ok) return false;
+    ok &= mpu_writeReg(MPU6050_GYRO_CONFIG_R, MPU6050_GYRO_CONFIG_FSSEL_250);
 
-    //Accelerometer Config Register
-        //Full Scale 1 -> GS range = +- 2g
-    ok &= mpu_writeReg(MPU6050_ACCEL_CONFIG_R, 0x00);
-    if(!ok) return false;
+    ok &= mpu_writeReg(MPU6050_ACCEL_CONFIG_R, MPU6050_ACCEL_CONFIG_FSSEL_2);
 
-    //No motion Detect
-    //No FIFO (using isr)
-    //Default I2C Configuration
+    ok &= mpu_writeReg(MPU6050_INT_PIN_CFG_R, MPU6050_INT_PIN_CFG_RD_CLEAR);
 
-    //Interrupt Pin Config Register
-        // Set Active High INT pin
-        // Push/Pull
-        // Latching
-        // Default: reading INT_STATUS clears interrupts
-    ok &= mpu_writeReg(MPU6050_INT_PIN_CFG_R, 0x20);
-    if(!ok) return false;
-
-    //Interrupt Enable Register
-        //Only Enable interrupt for Data Ready
-    ok &= mpu_writeReg(MPU6050_INT_ENABLE_R, 0x01);
-    if(!ok) return false;
+    ok &= mpu_writeReg(MPU6050_INT_ENABLE_R, MPU6050_INT_ENABLE_DATA_READY);
 
     return ok;
 }

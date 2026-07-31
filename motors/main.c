@@ -19,24 +19,39 @@
 //Higher Level Peripheral Access
 #define SHELL_IMPLEMENTATION
 #include "shell.h"
+#include "dshot.h"
 
 /* GLOBALS CONSTS AND MACROS */
 #define LED_G           PORTF,3
-
-#define M1              PORTC,4     //M0PWM6 : M0 PWM3 GENA
-#define M2              PORTC,5     //M0PWM7 : M0 PWM3 GENB
-#define M3              PORTD,0     //M1PWM0 : M0 PWM0 GENA
-#define M4              PORTD,1     //M1PWM1 : M0 PWM0 GENB
+#define BUTTON          PORTF,4
+//
+#define M1              PORTC,4     //M0PWM6 : M0 PWM3 GENA   (DSHOT0A)
+#define M2              PORTC,5     //M0PWM7 : M0 PWM3 GENB   (DSHOT0B)
+#define M3              PORTD,0     //M1PWM0 : M0 PWM0 GENA   (DSHOT1A)
+#define M4              PORTD,1     //M1PWM1 : M0 PWM0 GENB   (DSHOT1B)
 
 #define JLX             PORTE,5
 #define JLY             PORTE,4
 #define JRX             PORTE,1
 #define JRY             PORTE,2
 
-#define PWM_DIV         SYSCTL_RCC_PWMDIV_2
-#define PWM_LOAD        50000-1     //20ms period (50Hz)
-#define PWM_MIN         19000       //cmp min for 950us
-#define PWM_MAX         41000       //cmp max for 2050u
+//#define PWM_DIV         SYSCTL_RCC_PWMDIV_2
+//#define PWM_LOAD        50000-1     //2.5ms period (400Hz)
+//#define PWM_MIN         20000       //cmp min for 1000us
+//#define PWM_MAX         40000       //cmp max for 2000us
+
+
+//#define PWM_DIV         SYSCTL_RCC_PWMDIV_2
+//#define PWM_LOAD        50000-1     //20ms period (50Hz)
+//#define PWM_MIN         2500       //cmp min for 1000us
+//#define PWM_MAX         5000       //cmp max for 2000us
+
+#define PWM_DIV         0
+#define PWM_LOAD        0
+#define PWM_MIN         48
+#define PWM_MAX         2047
+
+
 #define PWM_RANGE       ((PWM_MAX)-(PWM_MIN))
 
 /* SUB ROUTINE PROTOTYPES */
@@ -44,9 +59,14 @@ void initHw(void);
 
 void initAdc(void);
 void readAdc0Ss0(int16_t* data);
-void mix(int16_t* raws, uint16_t *mixed);
 
-void initBldc(void);
+//Dshot impl
+void _arm_seq(void);
+void _disarm_seq(void);
+
+//PWM impl
+void initPwms(void);
+void mix(int16_t* raws, uint16_t *mixed);
 void setPwms(uint16_t *pwms);
 
 /* MAIN ROUTINE */
@@ -54,18 +74,36 @@ int main(void)
 {
     initHw();
 
+    char buffer[50];
     int16_t raws[4];
-    uint16_t pwms[4];
+    uint16_t pwms[4] = {0};
+    bool armed = false;
 
     putsUart0(CLEAR_SCREEN);
+
+    //go into joystick reading
     for(;;) {
+        if(!armed) {
+            while(getPinValue(BUTTON));
+            _arm_seq();
+            armed = true;
+        } else {//armed
+            if(!getPinValue(BUTTON)) {
+                _disarm_seq();
+                armed = false;
+                continue;
+            }
+        }
+
         readAdc0Ss0(raws);
         mix(raws, pwms);
-//        convert(pwms);
-        setPwms(pwms);
-        char buffer[50];
-        usprintf(buffer, "M1:%d   \nM2:%d   \nM3:%d   \nM4:%d   ", pwms[0], pwms[1], pwms[2], pwms[3]);
+
+
+        if(0) setPwms(pwms);
+        else  setThrottles(pwms);
+
         putsUart0(SAVE_POS);
+        usprintf(buffer, "M1:%d   \nM2:%d   \nM3:%d   \nM4:%d   ", pwms[0], pwms[1], pwms[2], pwms[3]);
         putsUart0(buffer);
         putsUart0(RETURN_2_POS);
         waitMicrosecond(1e3);
@@ -78,9 +116,11 @@ void initHw(void) {
     //Status LED
     enablePort(PORTF);
     selectPinPushPullOutput(LED_G);
+    selectPinDigitalInput(BUTTON);
+    enablePinPullup(BUTTON);
 
-    initBldc();
-    setPwms((uint16_t[4]){PWM_MIN, PWM_MIN, PWM_MIN, PWM_MIN});
+//    initPwms();
+    initDshot();
     initAdc();
 
     //Shell
@@ -143,7 +183,16 @@ void readAdc0Ss0(int16_t* data)
     }
 }
 
-void initBldc() {
+//=======================================================================================
+//=======================================================================================
+
+
+
+
+//=======================================================================================
+//=======================================================================================
+//only works on one of my ESC's
+void initPwms() {
     enablePort(PORTC);
     enablePort(PORTD);
 
@@ -241,10 +290,25 @@ void mix(int16_t* raws, uint16_t *mixed){
 #undef min
 #undef max
 
-
 void setPwms(uint16_t *pwms) {
     PWM0_3_CMPA_R = pwms[0];
     PWM0_3_CMPB_R = pwms[1];
     PWM1_0_CMPA_R = pwms[2];
     PWM1_0_CMPB_R = pwms[3];
 }
+
+void _arm_seq(void) {
+    const uint16_t zeros[4] = {0,0,0,0};
+    uint16_t i;
+    for(i = 0; i < 500; ++i) {
+        setThrottles(zeros);
+        waitMicrosecond(2e3);   //2ms
+    }
+}
+
+void _disarm_seq(void) {
+    const uint16_t zeros[4] = {0,0,0,0};
+    setThrottles(zeros);
+    waitMicrosecond(500e3);
+}
+
